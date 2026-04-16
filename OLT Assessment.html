@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liver Transplant Anaesthetic Assessment - AutoCalc</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.4; color: #333; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { background-color: #ecf0f1; padding: 10px; font-size: 1.1em; border-left: 5px solid #3498db; margin-top: 25px; color: #2c3e50; }
+        
+        .section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .full-width { grid-column: span 4; }
+        .half-width { grid-column: span 2; }
+        
+        label { font-weight: bold; font-size: 0.85em; color: #555; display: block; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .calc-box { background: #e8f4fd; border: 1px solid #3498db; padding: 15px; border-radius: 4px; text-align: center; }
+        .calc-box strong { display: block; font-size: 1.2em; color: #2980b9; }
+        .score-val { font-size: 1.5em; font-weight: bold; color: #c0392b; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #dfe6e9; padding: 10px; text-align: left; }
+        th { background-color: #f9f9f9; width: 15%; }
+
+        .print-btn { 
+            position: fixed; bottom: 30px; right: 30px; padding: 15px 30px; 
+            background-color: #27ae60; color: white; border: none; border-radius: 50px; 
+            cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
+        .print-btn:hover { background-color: #2ecc71; }
+
+        @media print {
+            .print-btn { display: none; }
+            body { background: white; margin: 0; }
+            .container { box-shadow: none; max-width: 100%; width: 100%; padding: 0; }
+            input, textarea { border: none; border-bottom: 1px solid #eee; background: transparent; }
+            select { appearance: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Liver Transplant Anaesthetic Assessment</h1>
+
+    <div class="section">
+        <div class="half-width"><label>Assessor</label><input type="text"></div>
+        <div><label>Assessment Date</label><input type="date"></div>
+        <div><label>Sex</label><select id="sex"><option value="M">Male</option><option value="F">Female</option></select></div>
+        
+        <div><label>Surname</label><input type="text"></div>
+        <div><label>Forename</label><input type="text"></div>
+        <div><label>DoB</label><input type="date"></div>
+        <div><label>MRN</label><input type="text"></div>
+    </div>
+
+    <div class="section">
+        <div class="calc-box"><strong>UKELD Score</strong><span id="ukeld-res" class="score-val">--</span></div>
+        <div class="calc-box"><strong>MELD-Na Score</strong><span id="meld-res" class="score-val">--</span></div>
+        <div class="calc-box half-width"><strong>Liver Frailty Index (LFI)</strong><span id="lfi-res" class="score-val">--</span><br><small id="lfi-status"></small></div>
+    </div>
+
+    <h2>Clinical & Bloods</h2>
+    <div class="section">
+        <div><label>Bilirubin (µmol/L)</label><input type="number" id="bili" oninput="calcAll()"></div>
+        <div><label>INR</label><input type="number" step="0.1" id="inr" oninput="calcAll()"></div>
+        <div><label>Creatinine (µmol/L)</label><input type="number" id="creat" oninput="calcAll()"></div>
+        <div><label>Sodium (Na) (mmol/L)</label><input type="number" id="na" oninput="calcAll()" value="140"></div>
+    </div>
+
+    <div class="section">
+        <div class="half-width"><label>Aetiology</label><input type="text"></div>
+        <div><label>Jaundice</label><select><option>No</option><option>Yes</option></select></div>
+        <div><label>Ascites</label><select><option>No</option><option>Yes</option></select></div>
+    </div>
+
+    <h2>Frailty Assessment (LFI Inputs)</h2>
+    <div class="section">
+        <div><label>Grip 1 (kg)</label><input type="number" id="g1" oninput="calcAll()"></div>
+        <div><label>Grip 2 (kg)</label><input type="number" id="g2" oninput="calcAll()"></div>
+        <div><label>Grip 3 (kg)</label><input type="number" id="g3" oninput="calcAll()"></div>
+        <div style="background:#f9f9f9; padding:5px; border-radius:4px;">
+            <label>Avg Grip Strength</label><span id="avg-grip">0</span> kg
+        </div>
+        
+        <div class="half-width"><label>Time for 5 Chair Stands (sec)</label><input type="number" step="0.1" id="chair" oninput="calcAll()"></div>
+        <div class="half-width"><label>Tandem Balance Time (sec)</label><input type="number" step="0.1" id="balance" oninput="calcAll()"></div>
+    </div>
+
+    <h2>Medical History & Exam</h2>
+    <div class="section">
+        <div class="half-width"><label>PMH</label><textarea></textarea></div>
+        <div class="half-width"><label>Drug History</label><textarea></textarea></div>
+        <div class="half-width"><label>Anaesthetic History</label><textarea></textarea></div>
+        <div class="half-width"><label>Allergies</label><textarea></textarea></div>
+    </div>
+
+    <h2>Cardiovascular & Respiratory</h2>
+    <div class="section">
+        <div><label>ECG (QTc)</label><input type="text"></div>
+        <div><label>LVEF %</label><input type="text"></div>
+        <div><label>PASP (mmHg)</label><input type="text"></div>
+        <div><label>Inducible Ischaemia?</label><input type="text"></div>
+        <div class="full-width"><label>Echo / Stress Echo Comments</label><textarea></textarea></div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">Generate PDF Report</button>
+</div>
+
+<script>
+function calcAll() {
+    // 1. Inputs
+    const bili = parseFloat(document.getElementById('bili').value);
+    const inr = parseFloat(document.getElementById('inr').value);
+    const creat = parseFloat(document.getElementById('creat').value);
+    const na = parseFloat(document.getElementById('na').value);
+    const sex = document.getElementById('sex').value;
+
+    const g1 = parseFloat(document.getElementById('g1').value) || 0;
+    const g2 = parseFloat(document.getElementById('g2').value) || 0;
+    const g3 = parseFloat(document.getElementById('g3').value) || 0;
+    const chair = parseFloat(document.getElementById('chair').value);
+    const balance = parseFloat(document.getElementById('balance').value);
+
+    // 2. UKELD Calculation
+    if (bili && inr && creat && na) {
+        let ukeld = (5 * Math.log(inr)) + (15 * Math.log(bili)) + (2 * Math.log(creat)) - (0.5 * na) + 65;
+        document.getElementById('ukeld-res').innerText = Math.round(ukeld);
+    }
+
+    // 3. MELD-Na (UNOS 2016 Formula)
+    if (bili && inr && creat) {
+        // Convert to US units for standard MELD
+        let bili_mg = bili / 17.1;
+        let creat_mg = creat / 88.4;
+        
+        let meld_i = (0.378 * Math.log(bili_mg)) + (1.120 * Math.log(inr)) + (0.957 * Math.log(creat_mg)) + 0.643;
+        meld_i = Math.round(meld_i * 10);
+        
+        let na_adj = na;
+        if (na < 125) na_adj = 125;
+        if (na > 137) na_adj = 137;
+
+        let meld_na = meld_i + 1.32 * (137 - na_adj) - (0.033 * meld_i * (137 - na_adj));
+        document.getElementById('meld-res').innerText = Math.round(meld_na);
+    }
+
+    // 4. Liver Frailty Index (LFI)
+    // Formula: (-0.033 * grip) + (0.016 * chair) + (0.017 * balance_score) + 2.768
+    // Note: Balance score is often categorized. Here we use the raw time for Tandem.
+    if (g1 && g2 && g3 && chair && balance !== undefined) {
+        let avgGrip = (g1 + g2 + g3) / 3;
+        document.getElementById('avg-grip').innerText = avgGrip.toFixed(1);
+        
+        // standard coefficients (Valero et al.)
+        let lfi = (-0.033 * avgGrip) + (0.016 * chair) + (0.017 * (10 - balance)) + 2.768;
+        document.getElementById('lfi-res').innerText = lfi.toFixed(2);
+        
+        let status = "";
+        if (lfi < 3.2) status = "Robust";
+        else if (lfi < 4.5) status = "Pre-Frail";
+        else status = "Frail";
+        document.getElementById('lfi-status').innerText = status;
+    }
+}
+</script>
+
+</body>
+</html>
