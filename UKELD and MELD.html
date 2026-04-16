@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UKELD & MELD-Na Calculator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .row { display: flex; gap: 10px; }
+        .row div { flex: 1; }
+        button { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .results { margin-top: 25px; display: none; border-top: 2px solid #eee; pt: 20px; }
+        .score-box { padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
+        .ukeld { background-color: #e3f2fd; border: 1px solid #90caf9; }
+        .meld { background-color: #f3e5f5; border: 1px solid #ce93d8; }
+        .score-label { font-size: 0.9rem; color: #555; display: block; }
+        .score-value { font-size: 2.2rem; font-weight: bold; color: #2c3e50; }
+        .disclaimer { font-size: 0.75rem; color: #777; margin-top: 20px; font-style: italic; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Liver Score Calculator</h2>
+    
+    <div class="input-group">
+        <label>Unit System for Labs</label>
+        <select id="units">
+            <option value="intl">UK / Intl (µmol/L)</option>
+            <option value="us">US (mg/dL)</option>
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="input-group">
+            <label id="lbl-bili">Bilirubin</label>
+            <input type="number" id="bilirubin" step="0.1" placeholder="Bilirubin">
+        </div>
+        <div class="input-group">
+            <label id="lbl-creat">Creatinine</label>
+            <input type="number" id="creatinine" step="0.1" placeholder="Creatinine">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="input-group">
+            <label>INR</label>
+            <input type="number" id="inr" step="0.01" placeholder="e.g. 1.2">
+        </div>
+        <div class="input-group">
+            <label>Sodium (mmol/L)</label>
+            <input type="number" id="sodium" step="1" placeholder="e.g. 135">
+        </div>
+    </div>
+
+    <div class="input-group" style="display:flex; align-items:center; gap:10px;">
+        <input type="checkbox" id="dialysis" style="width:20px;">
+        <label for="dialysis" style="margin:0;">On Dialysis? (Twice in last week)</label>
+    </div>
+
+    <button onclick="calculateScores()">Calculate Scores</button>
+
+    <div class="results" id="results">
+        <div class="score-box ukeld">
+            <span class="score-label">UKELD SCORE</span>
+            <span class="score-value" id="ukeld-out">-</span>
+            <p id="ukeld-msg" style="margin:5px 0 0; font-size:0.85rem;"></p>
+        </div>
+
+        <div class="score-box meld">
+            <span class="score-label">MELD-Na SCORE (UNOS)</span>
+            <span class="score-value" id="meld-out">-</span>
+        </div>
+
+        <p class="disclaimer">
+            <strong>Note:</strong> UKELD >= 49 is the standard threshold for transplant listing in the UK. 
+            Sodium values are capped between 125-137 for both formulas.
+        </p>
+    </div>
+</div>
+
+<script>
+    function calculateScores() {
+        const units = document.getElementById('units').value;
+        let bili = parseFloat(document.getElementById('bilirubin').value);
+        let creat = parseFloat(document.getElementById('creatinine').value);
+        let inr = parseFloat(document.getElementById('inr').value);
+        let na = parseFloat(document.getElementById('sodium').value);
+        const dialysis = document.getElementById('dialysis').checked;
+
+        if ([bili, creat, inr, na].some(isNaN)) {
+            alert("Please enter all blood values.");
+            return;
+        }
+
+        // 1. UNIT CONVERSIONS & MELD-Na PREP (MELD-Na uses mg/dL)
+        let bili_mg, creat_mg;
+        let bili_umol, creat_umol;
+
+        if (units === 'intl') {
+            bili_umol = bili;
+            creat_umol = creat;
+            bili_mg = bili / 17.1;
+            creat_mg = creat / 88.4;
+        } else {
+            bili_mg = bili;
+            creat_mg = creat;
+            bili_umol = bili * 17.1;
+            creat_umol = creat * 88.4;
+        }
+
+        // Dialysis Rule
+        if (dialysis) creat_mg = 4.0;
+
+        // Caps for MELD-Na
+        let m_bili = Math.max(bili_mg, 1.0);
+        let m_creat = Math.max(creat_mg, 1.0);
+        let m_inr = Math.max(inr, 1.0);
+        let m_na = Math.min(Math.max(na, 125), 137);
+
+        // 2. CALCULATE MELD-Na (OPTN 2016 Formula)
+        let meld_i = (0.957 * Math.log(m_creat)) + (0.378 * Math.log(m_bili)) + (1.120 * Math.log(m_inr)) + 0.643;
+        meld_i = Math.round(meld_i * 10);
+        
+        let meld_na = meld_i;
+        if (meld_i > 11) {
+            meld_na = meld_i + 1.32 * (137 - m_na) - (0.033 * meld_i * (137 - m_na));
+        }
+        meld_na = Math.round(meld_na);
+
+        // 3. CALCULATE UKELD
+        // UKELD Formula uses µmol/L and mmol/L
+        let u_na = Math.min(Math.max(na, 125), 137);
+        let ukeld = ((0.391 * Math.log(bili_umol)) + (0.457 * Math.log(inr)) + (0.163 * Math.log(creat_umol)) + (0.076 * (137 - u_na)) + 1.896) * 10;
+        ukeld = Math.round(ukeld);
+
+        // 4. DISPLAY
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('ukeld-out').innerText = ukeld;
+        document.getElementById('meld-out').innerText = meld_na;
+
+        const ukMsg = document.getElementById('ukeld-msg');
+        if (ukeld >= 49) {
+            ukMsg.innerText = "Meets listing threshold (≥ 49)";
+            ukMsg.style.color = "#d32f2f";
+        } else {
+            ukMsg.innerText = "Below listing threshold (< 49)";
+            ukMsg.style.color = "#388e3c";
+        }
+    }
+</script>
+
+</body>
+</html>
