@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liver Transplant Anaesthesia</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --accent-color: #3498db;
+      --bg-color: #f8f9fa;
+      --text-color: #333;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* The Grid of 10 Big Tabs */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .tab-card {
+      background: white;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--primary-color);
+      border: 2px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .tab-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      border-color: var(--accent-color);
+      background: var(--accent-color);
+      color: white;
+    }
+
+    /* Special style for the first three main tabs */
+    .active-tab {
+      background: #fff;
+      border-left: 5px solid var(--accent-color);
+    }
+
+    /* Placeholder style for the remaining 7 */
+    .placeholder {
+      opacity: 0.6;
+      font-style: italic;
+      font-size: 1rem;
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">Home</a>
+  <a href="lfi.html">LFI</a>
+  <a href="about.html">About</a>
+</nav>
+
+<h1>Liver Transplant Anaesthesia</h1>
+
+<div class="dashboard-grid">
+  <a href="presentations.html" class="tab-card active-tab">📂 Presentations</a>
+  <a href="OLT.html" class="tab-card active-tab">📋 OLT Assessment</a>
+  <a href="reading.html" class="tab-card active-tab">📖 Reading Material</a>
+
+  <div class="tab-card placeholder">Coming Soon (4)</div>
+  <div class="tab-card placeholder">Coming Soon (5)</div>
+  <div class="tab-card placeholder">Coming Soon (6)</div>
+  <div class="tab-card placeholder">Coming Soon (7)</div>
+  <div class="tab-card placeholder">Coming Soon (8)</div>
+  <div class="tab-card placeholder">Coming Soon (9)</div>
+  <div class="tab-card placeholder">Coming Soon (10)</div>
+</div>
+
+</body>
+</html>

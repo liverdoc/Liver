@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reading Material | Liver Transplant Anaesthesia</title>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #e74c3c; /* Red theme for reading/pdfs */
+      --bg: #f5f5f5;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: var(--bg);
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #3498db;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+    }
+
+    /* Search Bar Styling */
+    #searchBar {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 30px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    /* List Styling */
+    .pdf-item {
+      background: white;
+      margin-bottom: 10px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+
+    .pdf-item:hover {
+      transform: translateX(5px);
+      border-left: 5px solid var(--accent);
+    }
+
+    .pdf-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pdf-title {
+      font-weight: bold;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .pdf-category {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .view-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">← Back to Dashboard</a>
+  <a href="presentations.html">Presentations</a>
+  <a href="OLT.html">OLT Assessment</a>
+</nav>
+
+<div class="container">
+  <h1>Reading Material</h1>
+  
+  <input type="text" id="searchBar" placeholder="Search by topic or title..." onkeyup="filterFiles()">
+
+  <div id="pdf-list-container">
+    </div>
+</div>
+
+<script>
+  // AUTOMATION: Add your PDF files here
+  // Format: { title: "Display Name", file: "filename.pdf", tag: "Category" }
+  const pdfFiles = [
+    { title: "Consensus Guidelines on Coagulopathy", file: "coag_2024.pdf", tag: "Haemostasis" },
+    { title: "Renal Protection in Liver Transplant", file: "renal_prot.pdf", tag: "Physiology" },
+    { title: "Vasoactive Management Strategies", file: "vasopressors.pdf", tag: "Intraop" },
+    { title: "Pediatric OLT Specifics", file: "peds_liver.pdf", tag: "Pediatrics" }
+  ];
+
+  const listContainer = document.getElementById('pdf-list-container');
+
+  function renderList(files) {
+    listContainer.innerHTML = '';
+    files.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'pdf-item';
+      div.innerHTML = `
+        <div class="pdf-info">
+          <a href="pdfs/${item.file}" class="pdf-title" target="_blank">${item.title}</a>
+          <span class="pdf-category">${item.tag}</span>
+        </div>
+        <a href="pdfs/${item.file}" class="view-link" target="_blank">View PDF 📄</a>
+      `;
+      listContainer.appendChild(div);
+    });
+  }
+
+  // Initial render
+  renderList(pdfFiles);
+
+  // Search Functionality
+  function filterFiles() {
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    const filtered = pdfFiles.filter(f => 
+      f.title.toLowerCase().includes(query) || 
+      f.tag.toLowerCase().includes(query)
+    );
+    renderList(filtered);
+  }
+</script>
+
+</body>
+</html>
