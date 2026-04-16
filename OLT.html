@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liver Transplant Anaesthetic Assessment</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.4; color: #333; margin: 20px; }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #2c3e50; }
+        h2 { background-color: #f2f2f2; padding: 5px; font-size: 1.1em; border-left: 5px solid #2c3e50; margin-top: 20px; }
+        
+        .section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .full-width { grid-column: span 4; }
+        .half-width { grid-column: span 2; }
+        
+        label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 2px; }
+        input, select, textarea { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 60px; }
+
+        .calc-field { background-color: #e8f4fd; font-weight: bold; border: 1px solid #3498db; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f9f9f9; width: 15%; }
+        td { width: 18%; }
+
+        .print-btn { 
+            position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; 
+            background-color: #27ae60; color: white; border: none; border-radius: 50px; 
+            cursor: pointer; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+
+        @media print {
+            .print-btn { display: none; }
+            input, textarea { border: none; border-bottom: 1px solid #eee; }
+            body { margin: 0; }
+            h2 { background-color: #eee !important; -webkit-print-color-adjust: exact; }
+            .calc-field { background-color: white; border-bottom: 1px solid #eee; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Liver Transplant Anaesthetic Assessment</h1>
+
+    <div class="section">
+        <div class="half-width"><label>Assessor</label><input type="text"></div>
+        <div><label>Assessment Date</label><input type="date"></div>
+        <div><label>Sex</label><select id="sex"><option value="M">M</option><option value="F">F</option></select></div>
+        
+        <div><label>Surname</label><input type="text"></div>
+        <div><label>Forename</label><input type="text"></div>
+        <div><label>DoB</label><input type="date"></div>
+        <div><label>MRN</label><input type="text"></div>
+
+        <div><label>UKELD (Auto)</label><input type="text" id="ukeld_score" class="calc-field" readonly></div>
+        <div><label>MELD-Na (Auto)</label><input type="text" id="meld_score" class="calc-field" readonly></div>
+        <div><label>Blood Group</label><input type="text"></div>
+        <div><label>Height (cm)</label><input type="number" id="height" oninput="calcAll()"></div>
+        <div><label>Weight (kg)</label><input type="number" id="weight" oninput="calcAll()"></div>
+        <div><label>BMI (Auto)</label><input type="text" id="bmi_score" class="calc-field" readonly></div>
+    </div>
+
+    <h2>Clinical Status [cite: 1]</h2>
+    <div class="section">
+        <div class="half-width"><label>Aetiology</label><input type="text"></div>
+        <div class="half-width"><label>Indication for Transplant</label><input type="text"></div>
+        
+        <div><label>Portal Hypertension</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Varices</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Last Banded</label><input type="text"></div>
+        <div><label>OGD Date</label><input type="date"></div>
+
+        <div><label>Jaundice</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Ascites</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Diuretic Resistant</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Drainage History</label><input type="text"></div>
+
+        <div><label>Encephalopathy</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Grade (I-IV)</label><input type="text"></div>
+        <div class="half-width"><label>EEG Findings</label><input type="text"></div>
+    </div>
+
+    <h2>History & Physical Exam [cite: 1]</h2>
+    <div class="section">
+        <div class="half-width"><label>Past Medical History (PMH)</label><textarea></textarea></div>
+        <div class="half-width"><label>Drug History (DH)</label><textarea></textarea></div>
+        <div class="half-width"><label>Anaesthetic History</label><textarea></textarea></div>
+        <div class="half-width"><label>Allergies</label><textarea></textarea></div>
+        <div><label>Airway / Teeth</label><input type="text"></div>
+        <div><label>Smoking History</label><input type="text"></div>
+        <div><label>Diabetes</label><input type="text"></div>
+        <div><label>Hypertension</label><input type="text"></div>
+        <div><label>FH of IHD</label><input type="text"></div>
+        <div><label>Hyperlipidaemia</label><input type="text"></div>
+        <div class="half-width"><label>Stroke / TIA</label><input type="text"></div>
+    </div>
+
+    <h2>Cardiovascular Investigations [cite: 1]</h2>
+    <div class="section">
+        <div class="half-width"><label>CV History / Examination</label><textarea></textarea></div>
+        <div><label>HR</label><input type="text"></div>
+        <div><label>BP</label><input type="text"></div>
+        <div><label>ECG (QTc)</label><input type="text"></div>
+        <div><label>HS</label><input type="text"></div>
+        <div><label>Carotid Doppler</label><input type="text"></div>
+        <div><label>Inducible Ischaemia?</label><input type="text"></div>
+    </div>
+    
+    <div class="section">
+        <div class="half-width"><label>Echo / Stress Echo Comments</label><textarea></textarea></div>
+        <div><label>LVEF %</label><input type="text"></div>
+        <div><label>RV Function</label><input type="text"></div>
+        <div><label>TAPSE</label><input type="text"></div>
+        <div><label>PASP (mmHg)</label><input type="text"></div>
+        
+        <div><label>Stress HR Pre</label><input type="text"></div>
+        <div><label>Stress HR Post</label><input type="text"></div>
+        <div><label>EF Pre</label><input type="text"></div>
+        <div><label>EF Post</label><input type="text"></div>
+        
+        <div><label>Diastolic Dysf?</label><select><option>No</option><option>Yes</option></select></div>
+        <div><label>E/A Ratio</label><input type="text"></div>
+        <div><label>TR</label><input type="text"></div>
+        <div><label>LA Enlarged?</label><select><option>No</option><option>Yes</option></select></div>
+
+        <div class="half-width"><label>Angiography</label><input type="text"></div>
+        <div><label>β-blocked?</label><select><option>Yes</option><option>No</option></select></div>
+        <div><label>Stress Echo</label><input type="text"></div>
+    </div>
+
+    <h2>Respiratory & ABG [cite: 1]</h2>
+    <div class="section">
+        <div class="half-width"><label>Respiratory History</label><textarea></textarea></div>
+        <div class="half-width"><label>Exam / Comments</label><textarea></textarea></div>
+        
+        <div><label>FEV1 (% Pred)</label><input type="text"></div>
+        <div><label>FVC (% Pred)</label><input type="text"></div>
+        <div><label>FEV1/FVC Ratio</label><input type="text"></div>
+        <div><label>DLCO / KCO</label><input type="text"></div>
+        
+        <div><label>pH (ABG)</label><input type="text"></div>
+        <div><label>pO2</label><input type="text"></div>
+        <div><label>pCO2</label><input type="text"></div>
+        <div><label>RR</label><input type="text"></div>
+        
+        <div><label>HCO3-</label><input type="text"></div>
+        <div><label>Base Excess (BE)</label><input type="text"></div>
+        <div><label>Glucose</label><input type="text"></div>
+        <div><label>Lactate</label><input type="text"></div>
+    </div>
+
+    <h2>Investigations [cite: 2]</h2>
+    <div class="section">
+        <div class="full-width"><label>Imaging (CXR / CT / MR)</label><textarea></textarea></div>
+    </div>
+    
+    <div><label>Bloods Date:</label> <input type="date" style="width: 200px; display: inline-block;"></div>
+    <table>
+        <tr>
+            <th>Hb</th><td><input type="text"></td>
+            <th>INR</th><td><input type="number" step="0.1" id="inr" oninput="calcAll()"></td>
+            <th>Bilirubin</th><td><input type="number" id="bili" oninput="calcAll()"></td>
+            <th>Na</th><td><input type="number" id="na" oninput="calcAll()"></td>
+            <th>BNP</th><td><input type="text"></td>
+        </tr>
+        <tr>
+            <th>WCC</th><td><input type="text"></td>
+            <th>PT</th><td><input type="text"></td>
+            <th>AST</th><td><input type="text"></td>
+            <th>K</th><td><input type="text"></td>
+            <th>TSH</th><td><input type="text"></td>
+        </tr>
+        <tr>
+            <th>Plt</th><td><input type="text"></td>
+            <th>APTT</th><td><input type="text"></td>
+            <th>ALT</th><td><input type="text"></td>
+            <th>Urea (U)</th><td><input type="text"></td>
+            <th>T4</th><td><input type="text"></td>
+        </tr>
+        <tr>
+            <th>Fibrinogen</th><td><input type="text"></td>
+            <th>ALP</th><td><input type="text"></td>
+            <th>Creatinine</th><td><input type="number" id="creat" oninput="calcAll()"></td>
+            <th>Albumin</th><td><input type="text"></td>
+            <th>eGFR</th><td><input type="text"></td>
+        </tr>
+        <tr>
+            <th colspan="2">Group / Antibodies</th><td colspan="3"><input type="text"></td>
+            <th>Other</th><td colspan="4"><input type="text"></td>
+        </tr>
+    </table>
+
+    <h2>Frailty Assessment [cite: 2]</h2>
+    <div class="section">
+        <div><label>Grip Att 1 (kg)</label><input type="number" step="0.1"></div>
+        <div><label>Grip Att 2 (kg)</label><input type="number" step="0.1"></div>
+        <div><label>Grip Att 3 (kg)</label><input type="number" step="0.1"></div>
+        <div><label>Grip Avg (LFI Use)</label><input type="number" step="0.1" id="grip" oninput="calcAll()"></div>
+
+        <div><label>5 Chair Stands (sec)</label><input type="number" step="0.1" id="chair" oninput="calcAll()"></div>
+        <div><label>Side-by-Side (sec)</label><input type="number"></div>
+        <div><label>Semi Tandem (sec)</label><input type="number"></div>
+        <div><label>Tandem (sec)</label><input type="number" id="balance" oninput="calcAll()"></div>
+        
+        <div class="half-width"><label>Liver Frailty Index (Auto)</label><input type="text" id="lfi_score" class="calc-field" readonly></div>
+        <div class="half-width"><label>Dominant Hand</label><input type="text"></div>
+    </div>
+
+    <h3>Stair Test (2 floors) [cite: 2]</h3>
+    <div class="section">
+        <div class="half-width"><label>Comments</label><textarea></textarea></div>
+        <div><label>Pre-SpO2</label><input type="text"></div>
+        <div><label>Post-SpO2</label><input type="text"></div>
+        <div><label>Pre-HR</label><input type="text"></div>
+        <div><label>Post-HR</label><input type="text"></div>
+        <div><label>Time to Climb (sec)</label><input type="text"></div>
+    </div>
+
+    <h2>Listing Information [cite: 3]</h2>
+    <div class="section">
+        <div><label>Date Listed</label><input type="date"></div>
+        <div class="half-width"><label>Consultant Discussion</label><input type="text"></div>
+        <div class="full-width"><label>Outcome / Pending Investigations / Follow-up</label><textarea></textarea></div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">Generate PDF</button>
+
+    <script>
+        function calcAll() {
+            const inr = parseFloat(document.getElementById('inr').value);
+            const bili = parseFloat(document.getElementById('bili').value);
+            const creat = parseFloat(document.getElementById('creat').value);
+            const na = parseFloat(document.getElementById('na').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const grip = parseFloat(document.getElementById('grip').value);
+            const chair = parseFloat(document.getElementById('chair').value);
+            const balance = parseFloat(document.getElementById('balance').value);
+
+            if (height > 0 && weight > 0) {
+                const bmi = weight / ((height / 100) ** 2);
+                document.getElementById('bmi_score').value = bmi.toFixed(1);
+            }
+
+            if (inr > 0 && bili > 0 && creat > 0 && na > 0) {
+                const ukeld = ((1.5 * Math.log(inr)) + (0.3 * Math.log(bili)) + (1.2 * Math.log(creat)) - (0.086 * na) + 9.52) * 10;
+                document.getElementById('ukeld_score').value = Math.round(ukeld);
+            }
+
+            if (inr > 0 && bili > 0 && creat > 0 && na > 0) {
+                const bili_mg = bili / 17.1;
+                const creat_mg = creat / 88.4;
+                const c_inr = Math.max(inr, 1.0);
+                const c_bili = Math.max(bili_mg, 1.0);
+                const c_creat = Math.min(Math.max(creat_mg, 1.0), 4.0);
+                const c_na = Math.min(Math.max(na, 125), 137);
+                let meldi = (0.957 * Math.log(c_creat)) + (0.378 * Math.log(c_bili)) + (1.120 * Math.log(c_inr)) + 0.643;
+                meldi = meldi * 10;
+                let meldna = meldi + 1.32 * (137 - c_na) - (0.033 * meldi * (137 - c_na));
+                document.getElementById('meld_score').value = Math.round(meldna);
+            }
+
+            if (!isNaN(grip) && !isNaN(chair) && !isNaN(balance)) {
+                const lfi = (-0.33 * grip) + (0.14 * chair) + (-0.01 * balance) + 6.31;
+                document.getElementById('lfi_score').value = lfi.toFixed(2);
+            }
+        }
+    </script>
+</body>
+</html>
