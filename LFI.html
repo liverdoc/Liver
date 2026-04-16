@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<nav>
+  <a href="index.html">Home</a>
+  <a href="lfi.html">LFI</a>
+  <a href="about.html">About</a>
+</nav>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liver Frailty Index (LFI) Calculator</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { color: #2c3e50; margin-top: 0; }
+        .input-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; transition: background 0.3s; }
+        button:hover { background-color: #2980b9; }
+        #result-box { margin-top: 1.5rem; padding: 1rem; border-radius: 4px; display: none; text-align: center; }
+        .robust { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .pre-frail { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .frail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .score-val { font-size: 2rem; font-weight: bold; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>LFI Calculator</h2>
+    
+    <div class="input-group">
+        <label for="grip">Handgrip Strength (kg)</label>
+        <input type="number" id="grip" placeholder="e.g. 25" step="0.1">
+    </div>
+
+    <div class="input-group">
+        <label for="chair">Time for 5 Chair Stands (sec)</label>
+        <input type="number" id="chair" placeholder="e.g. 12.5" step="0.1">
+    </div>
+
+    <div class="input-group">
+        <label for="balance">Total Balance Time (max 30 sec)</label>
+        <input type="number" id="balance" placeholder="e.g. 30" max="30" step="1">
+    </div>
+
+    <button onclick="calculateLFI()">Calculate Score</button>
+
+    <div id="result-box">
+        <span id="category-text" style="font-weight: bold; text-transform: uppercase;"></span>
+        <span class="score-val" id="score-out"></span>
+    </div>
+</div>
+
+<script>
+    function calculateLFI() {
+        const grip = parseFloat(document.getElementById('grip').value);
+        const chairTime = parseFloat(document.getElementById('chair').value);
+        const balance = parseFloat(document.getElementById('balance').value);
+        const resultBox = document.getElementById('result-box');
+        const scoreOut = document.getElementById('score-out');
+        const categoryText = document.getElementById('category-text');
+
+        if (isNaN(grip) || isNaN(chairTime) || isNaN(balance) || chairTime <= 0) {
+            alert("Please enter valid numbers. Chair time must be greater than 0.");
+            return;
+        }
+
+        // Convert chair time to stands per second
+        const standsPerSec = 5 / chairTime;
+
+        // UCSF Formula: (-0.330 * grip) + (-2.529 * stands/sec) + (-0.040 * balance) + 6
+        const lfi = (-0.330 * grip) + (-2.529 * standsPerSec) + (-0.040 * balance) + 6;
+        const finalScore = lfi.toFixed(2);
+
+        // UI Updates
+        resultBox.style.display = 'block';
+        scoreOut.innerText = finalScore;
+        
+        // Reset classes
+        resultBox.className = '';
+
+        if (lfi < 3.2) {
+            categoryText.innerText = "Robust";
+            resultBox.classList.add('robust');
+        } else if (lfi < 4.5) {
+            categoryText.innerText = "Pre-Frail";
+            resultBox.classList.add('pre-frail');
+        } else {
+            categoryText.innerText = "Frail";
+            resultBox.classList.add('frail');
+        }
+    }
+</script>
+
+</body>
+</html>
