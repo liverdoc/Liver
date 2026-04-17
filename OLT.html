@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liver Transplant Anaesthetic Assessment</title>
+    <style>
+        /* Base Styling */
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.25; color: #333; margin: 15px; background-color: #f9f9f9; }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #2c3e50; margin: 0 0 8px 0; font-size: 1.5em; }
+        h2 { background-color: #f2f2f2; padding: 5px; font-size: 1.1em; border-left: 5px solid #2c3e50; margin: 10px 0 5px 0; }
+        h3 { font-size: 1em; margin: 6px 0 3px 0; border-bottom: 1px solid #ccc; }
+        
+        .section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 5px; }
+        .full-width { grid-column: span 4; }
+        .half-width { grid-column: span 2; }
+        
+        label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 1px; color: #444; }
+        input, select, textarea { width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box; font-size: 0.95em; }
+        textarea { resize: none; min-height: 45px; font-family: inherit; }
+
+        .calc-field { background-color: #e8f4fd; font-weight: bold; border: 1px solid #3498db; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #ddd; padding: 4px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f9f9f9; width: 15%; }
+        td { width: 18%; }
+
+        /* Updated Button Container for more buttons */
+        .btn-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+        .btn { 
+            padding: 10px 18px; color: white; border: none; border-radius: 25px; 
+            cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            transition: transform 0.1s; width: 160px;
+        }
+        .btn:active { transform: scale(0.95); }
+        
+        .print-btn { background-color: #27ae60; }
+        .save-btn { background-color: #2980b9; }
+        .load-btn { background-color: #8e44ad; }
+        .clear-btn { background-color: #e74c3c; }
+
+        /* PRINT OPTIMIZATION */
+        @media print {
+            @page { size: A4; margin: 0.7cm; }
+            body { margin: 0; padding: 0; background-color: white; font-size: 10pt; }
+            .btn-container { display: none; }
+            
+            .page-break { break-before: page; margin-top: 0 !important; }
+            
+            h1 { font-size: 1.4em; }
+            h2 { font-size: 1.1em; padding: 3px; -webkit-print-color-adjust: exact; background-color: #eee !important; }
+            label { font-size: 0.85em; }
+            input, select, textarea { border: none; border-bottom: 1px solid #eee; font-size: 0.9em; padding: 2px; }
+            textarea { min-height: 40px; height: 40px; } 
+            
+            .section { gap: 6px; margin-bottom: 4px; }
+            th, td { padding: 3px; font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Liver Transplant Anaesthetic Assessment</h1>
+
+    <input type="file" id="fileInput" style="display: none;" accept=".json" onchange="importJSON(event)">
+
+    <div class="section">
+        <div class="half-width"><label>Assessor</label><input type="text" id="f_assessor"></div>
+        <div><label>Date</label><input type="date" id="f_date"></div>
+        <div><label>Sex</label><select id="sex" onchange="calcAll()"><option value="M">M</option><option value="F">F</option></select></div>
+        
+        <div><label>Surname</label><input type="text" id="f_surname"></div>
+        <div><label>Forename</label><input type="text" id="f_forename"></div>
+        <div><label>DoB</label><input type="date" id="f_dob"></div>
+        <div><label>MRN</label><input type="text" id="f_mrn"></div>
+
+        <div><label>UKELD (Auto)</label><input type="text" id="ukeld_score" class="calc-field" readonly></div>
+        <div><label>MELD-Na (Auto)</label><input type="text" id="meld_score" class="calc-field" readonly></div>
+        <div><label>Blood Group</label><input type="text" id="f_bg"></div>
+        <div><label>BMI (Auto)</label><input type="text" id="bmi_score" class="calc-field" readonly></div>
+        <div style="display:none">
+            <input type="number" id="height" oninput="calcAll()">
+            <input type="number" id="weight" oninput="calcAll()">
+        </div>
+    </div>
+
+    <h2>Clinical Status</h2>
+    <div class="section">
+        <div class="half-width"><label>Aetiology</label><input type="text" id="f_aetiology"></div>
+        <div class="half-width"><label>Indication</label><input type="text" id="f_indication"></div>
+        <div><label>Portal HTN</label><select id="f_phtn"><option>Yes</option><option>No</option></select></div>
+        <div><label>Varices</label><select id="f_varices"><option>Yes</option><option>No</option></select></div>
+        <div><label>Last Banded</label><input type="text" id="f_banded"></div>
+        <div><label>OGD Date</label><input type="date" id="f_ogd"></div>
+    </div>
+
+    <h2>History & Physical Exam</h2>
+    <div class="section">
+        <div class="half-width"><label>Past Medical History (PMH)</label><textarea id="f_pmh"></textarea></div>
+        <div class="half-width"><label>Drug History (DH)</label><textarea id="f_dh"></textarea></div>
+        <div class="half-width"><label>Anaesthetic History</label><textarea id="f_anes"></textarea></div>
+        <div class="half-width"><label>Allergies</label><textarea id="f_allergies"></textarea></div>
+    </div>
+
+    <h2>Cardiovascular & Respiratory</h2>
+    <div class="section">
+        <div class="half-width"><label>CV History / Exam</label><textarea id="f_cv_exam"></textarea></div>
+        <div class="half-width"><label>Echo / Stress Echo Comments</label><textarea id="f_echo_comm"></textarea></div>
+        
+        <div><label>LVEF %</label><input type="text" id="f_lvef"></div>
+        <div><label>PASP (mmHg)</label><input type="text" id="f_pasp"></div>
+        <div><label>ECG (QTc)</label><input type="text" id="f_qtc"></div>
+        <div><label>HS</label><input type="text" id="f_hs"></div>
+        
+        <div class="half-width"><label>Respiratory History</label><textarea id="f_resp_hist"></textarea></div>
+        <div class="half-width"><label>Resp Exam / Comments</label><textarea id="f_resp_comm"></textarea></div>
+        
+        <div><label>pH (ABG)</label><input type="text" id="f_ph"></div>
+        <div><label>pO2</label><input type="text" id="f_po2"></div>
+        <div><label>pCO2</label><input type="text" id="f_pco2"></div>
+        <div><label>Lactate</label><input type="text" id="f_lactate"></div>
+    </div>
+
+    <h2 class="page-break">Investigations</h2>
+    <div class="section">
+        <div class="full-width"><label>Imaging (CXR / CT / MR)</label><textarea id="f_imaging"></textarea></div>
+    </div>
+    
+    <div style="margin-bottom:5px;"><label>Bloods Date:</label> <input type="date" id="f_bloods_date" style="width: 180px; display: inline-block;"></div>
+    <table>
+        <tr>
+            <th>Hb</th><td><input type="text" id="f_hb"></td>
+            <th>INR</th><td><input type="number" step="0.1" id="inr" oninput="calcAll()"></td>
+            <th>Bilirubin</th><td><input type="number" id="bili" oninput="calcAll()"></td>
+            <th>Na</th><td><input type="number" id="na" oninput="calcAll()"></td>
+            <th>Creatinine</th><td><input type="number" id="creat" oninput="calcAll()"></td>
+        </tr>
+        <tr>
+            <th>WCC</th><td><input type="text" id="f_wcc"></td>
+            <th>Plt</th><td><input type="text" id="f_plt"></td>
+            <th>ALT</th><td><input type="text" id="f_alt"></td>
+            <th>K</th><td><input type="text" id="f_k"></td>
+            <th>Albumin</th><td><input type="text" id="f_alb"></td>
+        </tr>
+        <tr>
+            <th colspan="1">Other</th><td colspan="4"><input type="text" id="f_other_bloods"></td>
+        </tr>
+    </table>
+
+    <h2>Frailty Assessment</h2>
+    <div class="section">
+        <div><label>Grip Avg (kg)</label><input type="number" step="0.1" id="grip" oninput="calcAll()"></div>
+        <div><label>5 Chair Stands (s)</label><input type="number" step="0.1" id="chair" oninput="calcAll()"></div>
+        <div><label>Tandem (s)</label><input type="number" id="balance" oninput="calcAll()"></div>
+        <div><label>LFI Score</label><input type="text" id="lfi_score" class="calc-field" readonly></div>
+    </div>
+
+    <h3>Stair Test (2 floors)</h3>
+    <div class="section">
+        <div class="half-width"><label>Comments</label><textarea id="f_stair_comm"></textarea></div>
+        <div><label>Pre-SpO2</label><input type="text" id="f_pre_spo2"></div>
+        <div><label>Post-SpO2</label><input type="text" id="f_post_spo2"></div>
+    </div>
+
+    <h2>Listing Information</h2>
+    <div class="section">
+        <div><label>Date Listed</label><input type="date" id="f_listed"></div>
+        <div class="half-width"><label>Consultant</label><input type="text" id="f_cons"></div>
+        <div class="full-width"><label>Outcome / Follow-up</label><textarea id="f_outcome" style="min-height:70px;"></textarea></div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn save-btn" onclick="exportJSON()">Export JSON Draft</button>
+        <button class="btn load-btn" onclick="document.getElementById('fileInput').click()">Import JSON Draft</button>
+        <button class="btn print-btn" onclick="window.print()">Generate PDF</button>
+        <button class="btn clear-btn" onclick="clearForm()">Clear Form</button>
+    </div>
+
+    <script>
+        function calcAll() {
+            const inr = parseFloat(document.getElementById('inr').value) || 0;
+            const bili = parseFloat(document.getElementById('bili').value) || 0;
+            const creat = parseFloat(document.getElementById('creat').value) || 0;
+            const na = parseFloat(document.getElementById('na').value) || 0;
+            const grip = parseFloat(document.getElementById('grip').value) || 0;
+            const chair = parseFloat(document.getElementById('chair').value) || 0;
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const height = parseFloat(document.getElementById('height').value) || 0;
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+
+            if (height > 0 && weight > 0) {
+                const bmi = weight / ((height / 100) ** 2);
+                document.getElementById('bmi_score').value = bmi.toFixed(1);
+            }
+
+            if (inr > 0 && bili > 0 && creat > 0 && na > 0) {
+                const ukeld = ((1.5 * Math.log(inr)) + (0.3 * Math.log(bili)) + (1.2 * Math.log(creat)) - (0.086 * na) + 9.52) * 10;
+                document.getElementById('ukeld_score').value = Math.round(ukeld);
+                
+                const bili_mg = bili / 17.1;
+                const creat_mg = creat / 88.4;
+                const c_inr = Math.max(inr, 1.0);
+                const c_bili = Math.max(bili_mg, 1.0);
+                const c_creat = Math.min(Math.max(creat_mg, 1.0), 4.0);
+                const c_na = Math.min(Math.max(na, 125), 137);
+                let meldi = ((0.957 * Math.log(c_creat)) + (0.378 * Math.log(c_bili)) + (1.120 * Math.log(c_inr)) + 0.643) * 10;
+                let meldna = meldi + 1.32 * (137 - c_na) - (0.033 * meldi * (137 - c_na));
+                document.getElementById('meld_score').value = Math.round(meldna);
+            }
+
+            if (grip > 0 && chair > 0) {
+                const lfi = (-0.33 * grip) + (0.14 * chair) + (-0.01 * balance) + 6.31;
+                document.getElementById('lfi_score').value = lfi.toFixed(2);
+            }
+        }
+
+        function exportJSON() {
+            const data = {};
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.id) data[el.id] = el.value;
+            });
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Assessment_Draft_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.keys(data).forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = data[id];
+                    });
+                    calcAll();
+                    alert("Draft loaded successfully.");
+                } catch (err) {
+                    alert("Failed to load file. Ensure it is a valid JSON draft.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearForm() {
+            if (confirm("Clear all data?")) {
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    if (!el.classList.contains('calc-field')) el.value = '';
+                });
+                document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+                calcAll();
+            }
+        }
+    </script>
+</body>
+</html>
